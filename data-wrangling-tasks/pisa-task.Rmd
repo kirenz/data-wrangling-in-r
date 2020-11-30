@@ -1,0 +1,360 @@
+---
+title: "PISA Data Analysis"
+author: "Prof. Dr. Kirenz"
+output:
+ html_document:
+  fig_height: 8
+  fig_width: 12
+  highlight: tango
+  number_sections: yes
+  theme: paper
+  toc: yes
+  toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+```
+
+
+![](http://www.oecd.org/media/oecdorg/satellitesites/pisa/PISA_WebBanner6-01.jpg)
+
+PISA is the OECD's Programme for International Student Assessment. Every three years it tests 15-year-old students from all over the world in reading, mathematics and science. The tests are designed to gauge how well the students master key subjects in order to be prepared for real-life situations in the adult world
+
+Source: [OECD (2019)](http://www.oecd.org/pisa/)
+
+
+# PISA data analysis 
+
+
+## Data import 
+
+You can find all PISA datasets on [GitHub](https://github.com/kirenz/datasets).
+
+* Load the pisa dataset "pisa.csv" and call the object "pisa_total"
+
+```{r}
+
+```
+
+
+
+
+* Load the pisa boys dataset and call it "pisa_boys"
+
+```{r}
+```
+
+* Load the pisa girls dataset and call it "pisa_girls"
+
+```{r}
+```
+
+## Data understanding 
+
+* Use the `dplyr` function `glimpse` to take a look at your data
+
+```{r}
+
+```
+
+
+## Data transformations
+
+### bind_rows()
+
+Combine the two data frames, `pisa_girls` and `pisa_boys`, into one data frame called `pisa`. 
+
+```{r}
+
+```
+
+
+
+### select()
+
+* Select all variables except `INDICATOR`, `MEASURE`, `FREQUENCY` and `Flag.Codes` from the dataset and save the ramaining columns as `pisa`. 
+
+```{r}
+
+```
+
+
+
+### rename_all()
+
+* Change all variables to lower case (e.g. `LOCATION` to `location`). 
+
+```{r}
+
+```
+
+
+
+### as.factor()
+
+* Convert `time` to a factor variable and rename `time` to `year` (save the changes to your data frame).
+
+```{r}
+
+```
+
+
+
+### rename()
+
+* Rename `location` to `country` and `value` to `score` (save the changes to your data frame). 
+
+```{r}
+
+```
+
+
+
+### str()
+
+* Now, take a look at the structure of your data frame. You should have 380 observations with 4 variables (`country`, `subject`, `year`, `score`). 
+
+```{r}
+
+```
+
+
+
+# Analyze the data
+
+* Use functions provided in the `tidyverse` to answer the following questions. If possible, use the pipe (`%>%`) operator - you only have to save the results if stated in the task. Use the data frame `pisa`.
+
+## count() and arrange()
+
+* How many countries participated in PISA? Sort your results in a descending order.
+
+```{r}
+
+```
+
+
+
+## levels()
+
+* Display the years in which the assessments were conducted (use `levels`)? 
+
+```{r}
+
+```
+
+
+
+## min(), max(), summary()
+
+* What was the lowest and highest score across all countries and years? 
+
+```{r}
+# min
+
+```
+
+```{r}
+# max
+
+```
+
+```{r}
+# summary
+
+
+```
+
+
+## filter() and top_n()
+
+* Show the top ten countries with the highest assessment scores for the year 2015. Use filter(), arrange() and top_n() in your code (sort in an descending order ([hint](https://dplyr.tidyverse.org/reference/top_n.html))
+
+```{r}
+
+```
+
+
+* Show the ten countries with the lowest assessment scores for the year 2015 (with the lowest score at the top).
+
+```{r}
+
+```
+
+
+## group_by() and summarize()
+
+
+* Calculate the mean score for every year and save it in the data frame `pisa` as a new column called `mean_score_year`. Use the function ungroup() at the end of your code ([hint](https://dplyr.tidyverse.org/reference/group_by.html))
+
+```{r}
+
+```
+
+
+* Calculate the mean score for the group (year, country, subject) and call it `mean_score`. Save the result as a new data frame called `mean_by_year_country_subject`. 
+
+```{r}
+
+```
+
+
+
+## filter()
+
+* Obtain only the scores for Germany for all years and save it as a new data frame called `pisa_germany`. 
+
+```{r}
+
+```
+
+
+
+## if_else()
+
+Now, take a look at the performance of german students compared to the mean score. In particular, create a new variable/column with `if_else()` that uses the mean across countries for every year as a condition:  
+
+* The value of the new variable should show `above average`, if the score is higher than the average score of that year. Otherwise, it should show `below average`. Call the new variable `comparison`.
+
+```{r}
+
+```
+
+
+# Data visualization
+
+Load the library `ggplot2`. 
+
+```{r}
+
+```
+
+
+
+## Data preparation
+
+* Select all variables except `INDICATOR`, `MEASURE`, `FREQUENCY` and `Flag Codes` from the dataset and save the columns as `pisa_total` (use the - operator to deselect the variables). ([hint](https://stackoverflow.com/a/22842390))
+
+```{r}
+
+```
+
+
+* Change all variables to lower case (e.g. `LOCATION` to `location`). 
+
+```{r}
+
+```
+
+
+
+* Convert `time` to a factor variable. 
+
+```{r}
+
+```
+
+
+
+* Rename `time` to `year`, `location` to `country` and `value` to `score` and save it again as `pisa_total`. 
+
+```{r}
+
+```
+
+
+* Now, we enrich the data with a new dataset. Use this [data source](https://datahub.io/JohnSnowLabs/country-and-continent-codes-list) to obtain the file `country-and-continent-codes-list-csv.csv`. Import the file and call it country_and_continent. 
+
+```{r}
+
+```
+
+
+
+* Select all columns from `country_and_continent` except `Two_Letter_Country_Code` and `Country_Number`.
+
+```{r}
+
+```
+
+
+
+
+* Rename `Three_Letter_Country_Code`to `country`
+
+```{r}
+
+```
+
+
+* Perform a left join to add `country_and_continent` to `pisa_total` and save the new data in `pisa_total`
+
+```{r}
+
+```
+
+
+
+## Boxplot for Europe
+
+* Create a boxplot:
+
+ * Only use the subset Europe in your plot ([hint](https://stackoverflow.com/a/18165730))
+ * Set x = country and y = score
+ * Sort the data from the highest to the lowest score ([hint](https://stackoverflow.com/a/25664367))
+ * Use theme_standard with a base size of 12 ([hint](https://ggplot2.tidyverse.org/reference/ggtheme.html))
+ * Rotate the text of the x-axis to an angle of 90 degree ([hint](https://stackoverflow.com/a/4486860))
+ * Set the title of the plot as "Variation in PISA Scores" and the subtitle to "Europe" ([hint](https://ggplot2.tidyverse.org/reference/labs.html))
+ * Label the x-axis as "Country" and the y-axis as "PISA Score"
+
+
+```{r}
+
+```
+
+
+
+## Show scores for Germany over time
+
+
+* Create a line plot for Germany: 
+
+ * Only use the subset Germany in your plot ([hint](https://stackoverflow.com/a/18165730))
+ * Set x = year , y = score and group = 1 ([hint](https://stackoverflow.com/a/29019102))
+ * Use theme_classic with a base size of 12 ([hint](https://ggplot2.tidyverse.org/reference/ggtheme.html))
+ * Set the title of the plot as "Variation in PISA Scores over Time" and the subtitle to "Germany" 
+ * Label the x-axis as "Year" and the y-axis as "PISA Score"
+ * Use continous y-axis breaks: c(500, 502, 504, 506, 508, 510, 512, 514) ([hint](https://ggplot2.tidyverse.org/reference/scale_continuous.html))
+
+```{r}
+
+```
+
+
+## Show scores over time for boys and girls
+
+* Create a line plot showing the scores for girls and boys:
+
+ * Only use the subset Germany in your plot ([hint](https://stackoverflow.com/a/18165730))
+ * Set x = year , y = score, group = subject, color = subject ([hint](https://stackoverflow.com/a/29019102))
+ * Use a line plot as well as a point plot (to display the points in the lines) in one graph ([hint](http://www.sthda.com/english/wiki/ggplot2-line-plot-quick-start-guide-r-software-and-data-visualization))
+ * Use theme_classic with a base size of 12 ([hint](https://ggplot2.tidyverse.org/reference/ggtheme.html))
+ * Set the title of the plot as "Variation in PISA Scores over Time for Boys and Girls" and the subtitle to "Germany" 
+ * Label the x-axis as "Year" and the y-axis as "PISA Score"
+ * Don't show the title of the legend ("subject") ([hint](http://www.cookbook-r.com/Graphs/Legends_%28ggplot2%29/))
+
+```{r}
+
+```
+
+
+
+## Show scores over time for boys and girls with facet
+
+* Use the code from the previous plot and add a `facet_grid` for varibale `subject` ([hint](https://ggplot2.tidyverse.org/reference/facet_grid.html))
+
+```{r}
+
+```

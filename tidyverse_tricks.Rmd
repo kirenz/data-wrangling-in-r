@@ -1,0 +1,314 @@
+---
+title: "Tidyverse Tricks"
+subtitle: "Data wrangling with the Tidyverse"
+author: "Prof. Dr. Jan Kirenz"
+output:
+ html_document:
+  code_download: true 
+  css: style.css 
+  fig_height: 6
+  fig_width: 8
+  highlight: tango
+  number_sections: yes
+  theme: paper
+  toc: yes
+  toc_depth: 3
+  toc_float: 
+    collapsed: false
+    smooth_scroll: true 
+  df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+
+library(tidyverse)
+library(broom)
+theme_set(theme_bw())
+
+```
+
+This post is based on David Robinson’s excellent talk on “[Ten Tremendous Tricks for Tidyverse](https://www.youtube.com/watch?v=NDHSBUN_rVU)” and Emily Robinson's [summary of the talk](https://cmdlinetips.com/2019/12/10-tidyverse-tricks/).
+
+# Prepara data
+
+```{r}
+library(tidyverse)
+library(broom)
+
+library(gapminder)
+
+gapminder <- gapminder
+
+glimpse(gapminder)
+
+```
+
+
+# Counting & summarizing
+
+## count()
+
+```{r}
+
+gapminder %>% 
+  count(continent)
+
+```
+
+## count() with three arguments
+
+```{r}
+
+gapminder %>% 
+  count(continent, year, 
+        wt=pop,
+        name="total_pop", 
+        sort=TRUE)
+
+```
+
+Same solution with different function:
+
+```{r}
+
+gapminder %>% 
+  group_by(continent, year) %>%
+  summarize(total_pop = sum(pop)) %>%
+  arrange(desc(total_pop))
+
+```
+
+Aggregate by decade:
+
+```{r}
+
+gapminder %>% 
+  count(decade = 10 * (year %/% 10)) 
+       
+```
+
+
+
+```{r}
+
+gapminder %>% 
+  count(decade = 10 * (year %/% 10)) %>% 
+  ggplot(aes(decade, n)) +
+  geom_col() +
+  expand_limits(y=0) +
+  labs(y = "count per decade")
+  
+```
+
+
+## add_count()
+
+```{r}
+
+gapminder %>% 
+  select(continent, lifeExp) %>% 
+  add_count()
+
+```
+
+```{r}
+
+gapminder %>% 
+  select(continent, lifeExp) %>% 
+  add_count() %>% 
+  filter(n >= 1500)
+
+```
+
+
+## summarize() with list columns()
+
+```{r}
+
+df <- 
+  gapminder %>% 
+  count(continent,year, 
+        wt=pop,
+        name="total_pop", 
+        sort=TRUE) 
+
+glimpse(df)
+
+```
+
+```{r}
+
+df %>%
+  group_by(continent) %>%
+  summarise(lm_mod = list(lm(total_pop ~ year)))
+
+```
+
+```{r}
+
+df %>%
+  group_by(continent) %>%
+  summarise(lm_mod= list(lm(total_pop ~year))) %>%
+  mutate(tidied = map(lm_mod,tidy,conf.int = TRUE))
+
+```
+
+
+```{r}
+
+df %>%
+  group_by(continent) %>%
+  summarise(lm_mod= list(lm(total_pop ~year))) %>%
+  mutate(tidied = map(lm_mod,tidy,conf.int = TRUE)) %>%
+  unnest(tidied) 
+
+```
+
+```{r}
+
+df %>%
+  group_by(continent) %>%
+  summarise(lm_mod= list(lm(total_pop ~year))) %>%
+  mutate(tidied = map(lm_mod,tidy,conf.int = TRUE)) %>%
+  unnest(tidied) %>%
+  filter(term!="(Intercept)") %>%
+  ggplot(aes(estimate,continent)) +
+  geom_point()+
+  geom_errorbarh(aes(xmin=conf.low, xmax=conf.high,height = .3)) +
+  labs(title="Total population per continent over years") + theme_bw(base_size=16)
+
+```
+
+# ggplot2 & forcats
+
+## fct_reorder() + geom_col() + coord_flip()
+
+```{r}
+
+gapminder %>% 
+  filter(year==2007) %>%
+  count(continent, 
+        wt = gdpPercap, 
+        name="total_gdpPercap") %>%
+  ggplot(aes(x=fct_reorder(continent, total_gdpPercap),y=total_gdpPercap))+
+  geom_col()+
+  labs(x="Continent", title="Total GDP Per Capita for year 2007")+
+  coord_flip()
+
+```
+
+
+
+```{r}
+mpg <- mpg
+
+mpg %>% 
+  count(model) %>% 
+  mutate(model = fct_reorder(model, n)) %>% 
+  ggplot(aes(model, n)) +
+  geom_col() +
+  coord_flip()
+
+```
+
+## fct_lump()
+
+Reduce number of instances.
+
+```{r}
+big_epa_cars <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-10-15/big_epa_cars.csv")
+```
+
+```{r}
+
+big_epa_cars %>% 
+  select(make) %>%
+  ggplot(aes(x=fct_rev(fct_infreq(make))))+
+  geom_bar() +
+  labs(x="Car Make")+
+  coord_flip()+
+  theme_bw(base_size=10)
+
+```
+
+```{r}
+
+big_epa_cars %>% 
+  select(make) %>%
+  mutate(make_lumped = fct_lump(make,5))
+
+```
+
+```{r}
+
+big_epa_cars %>% 
+  select(make) %>%
+  mutate(make_lumped = fct_lump(make,35)) %>%
+  ggplot(aes(x=fct_rev(fct_infreq(make_lumped))))+
+  geom_bar() +
+  labs(x="Car Make")+
+  coord_flip()
+
+```
+
+## scale_x/y_log10()
+
+
+```{r}
+
+gapminder %>% 
+  ggplot(aes(x=gdpPercap,y=lifeExp))+
+  geom_point() 
+
+```
+
+```{r}
+
+gapminder %>% 
+  ggplot(aes(x=gdpPercap,y=lifeExp))+
+  geom_point() +
+  scale_x_log10()
+
+```
+
+# tidyr
+
+## separate()
+
+
+```{r}
+
+df <- data.frame(period=c("Q1_y2019",
+                          "Q2_y2019",
+                          "Q3_y2019",
+                          "Q4_y2019"),
+                 revenue=c(23,24,27,29))
+```
+
+
+```{r}
+
+df %>% 
+   separate(period,c("Quarter","Year"))
+
+```
+
+## extract()
+
+extract from tidyr is another tidyr function that is of the same flavor as separate(). extract() is bit more powerful as one can use regular expression to extract patterns of interest from column containing text and create one or more new columns.
+For example, using the same sample dataframe, we can extract the quarter and year information alone using extract() function with regular expression for the pattern we want to extract.
+
+```{r}
+
+df %>% 
+   extract(period,c("Quarter",
+                    "Year"),
+           "Q(.*)_y(.*)")
+```
+
+

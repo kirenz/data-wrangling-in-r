@@ -1,0 +1,290 @@
+---
+author: "INSERT YOUR NAME HERE"
+title: "Data Wrangling in R"
+subtitle: "World Development Indicators and Gapminder data"
+output:
+ html_document:
+  fig_height: 6
+  fig_width: 8
+  highlight: tango
+  number_sections: yes
+  theme: paper
+  toc: yes
+  toc_depth: 5
+  toc_float: 
+    collapsed: false
+    smooth_scroll: true 
+  df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+
+# Data wrangling with World Development Indicators
+
+
+<img src="http://datatopics.worldbank.org/world-development-indicators/img/logo-wb-header-en.svg">
+
+
+World Development Indicators (WDI) is the World Bank’s premier compilation of cross-country comparable data on development. It is a compilation of relevant, high-quality, and internationally comparable statistics about global development and the fight against poverty. In our problem set, we use a subset of WDI data for the year 2016. 
+
+In addition to WDI, we analyse [gapminder data](https://www.gapminder.org/data/documentation/) provided in the R-package "gapminder". Gapminder combines data on development from multiple sources into unique coherent time-series.
+
+**Important note**: it is crucial that you solve all problems one by one in the order listed in this notebook. Some of the tasks need the results provided by earlier ones. Use the code provided in our lecture about data wrangling (r-data-wrangling) and the information contained in this [data wrangling cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) to solve the tasks. 
+
+## Data import
+
+Import the data (worldbank_indicator_2016_subset.csv) from [GitHub](https://github.com/kirenz/datasets) with the package `readr` and call the dataset `wdi`:
+
+```{r}
+
+```
+
+
+## Data understanding 
+
+* Type `wdi` in the code chunk to display the R-object.
+
+```{r}
+
+```
+
+Data explanation:
+
+* Birth_rate: the birth rate (technically, births/population rate) is the total number of live births per 1,000 in a population in a year.
+
+* Death_rate: Expressed in units of deaths per 1,000 individuals per year; thus, a mortality rate of 9.5 (out of 1,000) in a population of 1,000 would mean 9.5 deaths per year in that entire population, or 0.95% out of the total.
+
+* GDP: Gross domestic products (GDP) is a monetary measure of the market value of all the final goods and services produced annually.
+
+
+* Check for missing values in the data.
+
+```{r}
+
+```
+
+
+* Delete variable X1.
+
+```{r}
+
+```
+
+
+* Transform column country to a factor.
+
+```{r}
+
+```
+
+
+* Check the data with dplyr's glimpse()
+
+```{r}
+
+```
+
+
+## select()
+
+* The select verb extracts particular columns based on a condition. 
+
+* Add a select() line after the pipe (%>%) to extract only the column country. 
+
+```{r}
+
+```
+
+
+* Add a select() line after the pipe (%>%) to extract only the columns which starts with "cou"
+
+```{r}
+
+```
+
+
+* Extract only the columns which matches the expression "Pop"
+
+```{r}
+
+```
+
+
+
+## filter()
+
+* The filter verb extracts particular observations based on a condition. 
+
+* Add a filter() line after the pipe (%>%) to extract only the observations for Germany. 
+
+```{r}
+
+```
+
+
+## arrange() 
+
+* We use arrange to sort observations in ascending or descending order of a particular variable. 
+
+* Sort the wdi dataset in ascending order of Birth_rate.
+
+```{r}
+
+```
+
+
+
+* Sort the wdi dataset in descending order of Birth_rate.
+
+```{r}
+
+```
+
+
+* You'll often need to use the pipe operator (%>%) to combine multiple dplyr verbs in a row.
+
+* Use `filter()` to extract observations for Birth_rate < 10, then use `arrange()` to sort in descending order of population (pop).
+
+
+```{r}
+
+```
+
+
+## mutate(): change or add variables
+
+* Suppose we want to calculate population natural increase determined by births and deaths (≠ Pop_growth_rate) by subtracting Death_rate from Birth_rate. You can use the `mutate()` verb to create a new column that's calculated this way. In particular, use `mutate()` to add a new column, call it `Pop_natural_increase`, calculated as (Birth_rate - Death_rate) and select only this column (do not save the new column to the original data, just view the output).
+
+```{r}
+
+```
+
+
+* Use `mutate()` to add a new column, called `GDP_capita`, calculated as (GDP / Population). This time, we want to save the column to our original data `wdi`.
+
+```{r}
+
+```
+
+
+* In one sequence of pipes on the wdi dataset:
+
+1. filter() for observations with GDP_capita > 10000,
+
+1. Use mutate() to add a new column, called Pop_natural_increase, calculated as (Birth_rate - Death_rate),
+
+1. arrange() in descending order of that new column and
+
+1. select country, Pop_natural_increase and GDP_capita.
+
+```{r}
+
+```
+
+
+## Create new dataset
+
+* Filter wdi for observations with a GDP_capita below 600 and assign it to a **new** dataset called `gdpcap600` using the assignment operator (<-).
+
+```{r}
+
+```
+
+
+## rename()
+
+* Rename the column Internet_User_pp to int_pp and save the change to the data.
+
+```{r}
+
+```
+
+
+
+## join()
+
+Now we turn to the combination of different datasets: joins. Use the [data wrangling cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) to obtain the relevant code.
+
+First of all, we need to obtain the gapminder data from the gapminder package:
+
+1. We install the package "gapminder", 
+1. activate the package with library() and 
+1. save the included dataset (called gapminder) as `gap` to your R-environment.
+
+```{r, eval=FALSE}
+#Step 1
+install.packages("gapminder")
+```
+
+
+```{r}
+# Step 2
+library(gapminder)
+# Step 3
+gap <- gapminder::gapminder
+```
+
+
+* Now we would like to add the column continent (which is only available in gapminder, not in wdi) to our wdi data:
+
+* Step 1: Create a new dataset called gap_cont (for gapminder continent), where you only select *distinct* countries and continents from the gap dataset (use the verb `distinct()`).
+
+```{r}
+
+```
+
+
+* Step 2: Perform a left join on wdi to add the columns from gap_cont. Store the resulting data in the wdi data (note that column country will be transformed (coerced) to a character variable).
+
+```{r}
+
+```
+
+
+# Grouping and summarizing
+ 
+* Display the number of countries in each continent (use `count()`): 
+
+```{r}
+
+```
+
+ 
+* Use the `median()` function within `summarize()` to find the median GDP_capita. Name the column `medianGDPcap`:
+
+```{r}
+
+```
+
+
+* Filter for continent Europe, then use the median() function within a summarize() to calculate the median GDP per capita into a column called medianGDPcap
+
+```{r}
+
+```
+
+
+* Find both the median Birth_rate and the maximum GDP per capita for Europe, calling them medianBirthRate and maxGDPcap respectively. You can use the `max()` function to find the maximum.
+
+```{r}
+
+```
+
+
+* Now find both the median Birth_rate and the maximum GDP per capita for Asia, calling them medianBirthRate and maxGDPcap respectively. You can use the max() function to find the maximum.
+
+```{r}
+
+```
+
+ 
+* Find the median Birth_rate and maximum GDP per capita within each continent, saving them into medianBirthRate and maxGDPcap, respectively.
+
+```{r}
+
+```
+
