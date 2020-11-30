@@ -1,0 +1,516 @@
+---
+title: "Data Wrangling in R"
+subtitle: "Code-Overview"
+author: "Prof. Dr. Jan Kirenz, HdM Stuttgart"
+output:
+ html_document:
+  css: style.css 
+  fig_height: 6
+  fig_width: 8
+  highlight: tango
+  number_sections: yes
+  theme: paper
+  toc: yes
+  toc_depth: 5
+  toc_float: 
+    collapsed: false
+    smooth_scroll: true 
+  df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Import example data:
+
+```{r message=FALSE}
+library(tidyverse)
+
+df <- read_csv("https://raw.githubusercontent.com/kirenz/datasets/master/height.csv")
+head(df, 2)
+```
+
+# Base R
+
+## Select
+
+We can select observations and columns in base R as follows:
+
+
+```{r}
+# select rows (observations) 1 to 4 and columns 1 to 2
+df[1:4, 1:2]
+```
+
+
+```{r}
+# Select all observations and columns 3 to 4
+df[ , 3:4]
+```
+
+
+```{r}
+# Select rows 1 to 4 and all columns
+df[1:4, ]
+```
+
+
+## Create new variables
+
+```{r}
+# Examples of how to create new variables
+
+# duplicate a variable
+df$id_2 <- df$id
+
+# create new variable with value "20" in every row
+df$new <- 20
+
+# create new variable with value "new" in every row
+df$new_2 <- "new"
+
+# create new variable with sequence from 1 to 20 using seq() 
+df$new_id <- seq(1:20)
+
+# create new variable 1 to 20 using c(:) 
+df$new_id_2 <- c(1:20)
+
+
+head(df, 20)
+```
+
+```{r}
+str(df)
+```
+
+## Delete variable
+
+```{r}
+# Delete variable
+df$id_2 <- NULL
+
+head(df, 3)
+```
+
+
+## Rename variable
+
+```{r}
+# Rename columns examples
+
+# By name
+names(df)[names(df) == "new_id_2"] <- "ID"
+
+# By index ... index starts with 1... 1 equals variable "Name"
+names(df)[1] <- "Name"
+
+head(df, 2)
+```
+
+## Change data type
+
+```{r}
+# Change data type
+
+# As factor
+df$id <- as.factor(df$id)
+
+# As factor
+df$gender_2 <- as.factor(df$gender)
+
+# As numeric
+df$ID <- as.numeric(df$ID)
+
+
+str(df)
+```
+
+```{r}
+df
+```
+
+
+```{r}
+# Add new ordinal scaled variable "health"
+df$health <-  c("Poor", "Improved", "Excellent", "Poor", "Poor", "Improved", "Excellent", "Poor", "Excellent", "Poor", "Improved", "Excellent", "Poor", "Poor", "Improved", "Excellent", "Poor", "Excellent", NA, NA)
+
+# Change data type to ordered factor
+df$health <- factor(df$health, order=TRUE) # when no order is provided, order is alphabetical
+
+str(df$health)
+```
+
+```{r}
+head(df)
+```
+
+
+```{r}
+# specify the levels of the ordered categorical variable
+
+df$health <- factor(df$health, ordered=TRUE, levels = c("Poor", "Improved", "Excellent"))
+
+str(df$health)
+
+```
+
+## Missing values
+
+If you want to determine if a value is missing, use `is.na()`:
+
+```{r}
+is.na(df)
+```
+
+
+```{r}
+sum(is.na(df))
+
+```
+
+
+```{r}
+sum(is.na(df$health))
+```
+
+
+# dplyr 
+
+## Select columns
+
+There are a number of helper functions you can use within select():
+
+* starts_with("abc"): matches names that begin with “abc”.
+
+* ends_with("xyz"): matches names that end with “xyz”.
+
+* contains("ijk"): matches names that contain “ijk”.
+
+* matches("(.)\\1"): selects variables that match a regular expression. This one matches any variables that contain repeated characters. You’ll learn more about regular expressions in strings.
+
+* num_range("x", 1:3): matches x1, x2 and x3.
+
+```{r}
+# Drop columns by name
+
+# drop height
+select(df,-height)
+
+# drop height and gender
+select(df,-c(height, gender))
+
+# drop hby index
+select(df,-c(2))
+```
+
+```{r}
+select(df, starts_with("gen"))
+```
+
+
+```{r}
+select(df, ends_with("er"))
+```
+
+
+```{r}
+# Select columns whose name matches a regular expression
+select(df, matches("he."))
+```
+
+
+```{r}
+# Select columns whose name matches a regular expression
+select(df, matches(".ei."))
+```
+
+```{r}
+# Select range of columns
+
+# create variables to demonstrate num_range
+df$x1 <- c(rnorm(20)) 
+df$x3 <- c(seq(1:20)) 
+
+# Select columns named x1, x2
+
+select(df, num_range("x", 1))
+```
+
+```{r}
+df
+```
+
+
+## Rename
+
+```{r}
+# rename(df, new_name = old_name)
+rename(df, avg_height = average_height_parents)
+```
+
+## Filter rows
+
+Multiple arguments to `filter()` are combined with "and": every expression must be true in order for a row to be included in the output. For other types of combinations, you'll need to use Boolean operators yourself: 
+
+* `&` is "and", 
+* `|` is "or", and 
+* `!` is "not". 
+
+```{r bool-ops, echo = FALSE, fig.cap = "Complete set of boolean operations. `x` is the left-hand circle, `y` is the right-hand circle, and the shaded region show which parts each operator selects. Source: Wickham & Grolemund 2016"}
+
+knitr::include_graphics("diagrams/transform-logical.png")
+```
+
+
+```{r}
+# Extract rows that meet logical criteria.
+filter(df, height > 167)
+```
+
+## Arrange rows with `arrange()`
+
+`arrange()` works similarly to `filter()` except that instead of selecting rows, it changes their order. 
+
+```{r}
+arrange(df, average_height_parents, id)
+```
+
+Use `desc()` to re-order by a column in descending order:
+
+```{r}
+arrange(df, desc(height))
+```
+
+Missing values are always sorted at the end:
+
+```{r}
+df_2 <- tibble(x = c(5, 2, NA))
+arrange(df_2, x)
+arrange(df_2, desc(x))
+```
+
+
+
+## Group by and count 
+
+```{r}
+df_group_gender <- group_by(df, gender)
+
+summarize(df_group_gender, count=n())
+```
+
+
+```{r}
+# count number of cases 
+df %>%
+  group_by(gender) %>%   
+  summarise(count = n())
+```
+
+```{r}
+# tally() is short-hand for summarise()
+df %>% 
+  group_by(gender) %>% 
+  tally()
+```
+
+```{r}
+# count() is a short-hand for group_by() + tally()
+count(df, gender)
+```
+
+
+```{r}
+# add_count() is a short-hand for group_by() + add_tally() and add to df
+df %>% add_count(gender)
+```
+
+
+```{r}
+# Note that if the data is already grouped, count() adds
+# an additional group that is removed afterwards
+
+df %>% group_by(gender) %>% count(health)
+```
+
+
+
+```{r}
+# Compute new variables by group and add to dataframe
+df %>%
+  group_by(gender) %>%   
+  mutate(avg = mean(height))
+```
+
+
+```{r}
+# Compute new variables by group and show summarized result
+
+df %>%
+  group_by(gender) %>%                # group gender
+  summarise(avg = mean(height)) %>%   # calculate mean and summarize by group
+  arrange(desc(avg))                  # order values
+```
+
+## Conditional statements
+
+```{r}
+# Use conditions to create new variables
+df$height_text <- as.factor(if_else(df$height > 165, "tall", "small"))
+
+
+head(df, 5)
+```
+
+
+```{r}
+# Compute new variables with multiple if_else condition
+df$gender_dummy <- if_else(df$gender == 'female', 1, 
+                    if_else(df$gender == 'male', 0,
+                      3))
+
+head(df, 3)
+```
+
+```{r}
+
+# Compute new variables with multiple if_else condition
+df$con <- if_else(df$height < 160 | df$average_height_parents < 160, "small", 
+             if_else(df$height > 164 | df$average_height_parents > 164, "tall",
+                     "other"))
+
+select(df, c(height, average_height_parents, con))
+```
+
+```{r}
+# Compute new variables with multiple if_else condition
+df$cond <- if_else(df$gender == 'female' & df$height >= 165, "taller", 
+            if_else(df$gender == 'female' & df$height < 165, "tall", 
+             if_else(df$gender == 'male' & df$height == 168, "tallest",
+                     "other")))
+
+select(df, c(gender, height, cond))
+```
+
+
+# Tidy data
+
+Source: Wickham & Grolemund (2016)
+
+
+There are three interrelated rules which make a dataset tidy:
+
+* Each variable must have its own column.
+* Each observation must have its own row.
+* Each value must have its own cell.
+
+
+```{r}
+library(tidyverse)
+
+table1 <-  table1
+table1
+```
+
+## Gathering
+
+A common problem is a dataset where some of the column names are not names of variables, but values of a variable. Take table4a: the column names 1999 and 2000 represent values of the year variable, and each row represents two observations, not one.
+
+```{r}
+table4a
+```
+
+To tidy a dataset like this, we need to gather those columns into a new pair of variables. To describe that operation we need three parameters:
+
+* The set of columns that represent values, not variables. In this example, those are the columns 1999 and 2000.
+
+* The name of the variable whose values form the column names. I call that the key, and here it is year.
+
+* The name of the variable whose values are spread over the cells. I call that value, and here it’s the number of cases.
+
+* Together those parameters generate the call to gather():
+
+
+
+```{r tidy-gather, echo = FALSE, out.width = "100%", fig.cap = "Gathering `table4` into a tidy form."}
+knitr::include_graphics("images/tidy-9.png")
+```
+
+```{r}
+table4a %>% 
+  gather(`1999`, `2000`, key = "year", value = "cases")
+```
+
+Note: “1999” and “2000” are non-syntactic names (because they don’t start with a letter) so we have to surround them in backticks.
+
+## Spreading
+
+
+Spreading is the opposite of gathering. You use it when an observation is scattered across multiple rows. For example, take `table2`: an observation is a country in a year, but each observation is spread across two rows.
+
+```{r}
+table2
+```
+
+To tidy this up, we first analyse the representation in similar way to `gather()`. This time, however, we only need two parameters:
+
+* The column that contains variable names, the `key` column. Here, it's 
+  `type`.
+
+* The column that contains values from multiple variables, the `value`
+  column. Here it's `count`.
+
+
+
+```{r}
+table2 %>%
+    spread(key = type, value = count)
+```
+
+
+
+```{r tidy-spread, echo = FALSE, out.width = "100%", fig.cap = "Spreading `table2` makes it tidy. Source: Wickham & Grolemund 2016"}
+knitr::include_graphics("images/tidy-8.png")
+```
+
+
+As you might have guessed from the common `key` and `value` arguments, `spread()` and `gather()` are complements. `gather()` makes wide tables narrower and longer; `spread()` makes long tables shorter and wider.
+
+# Missing Values
+
+
+```{r}
+library(dplyr)
+df %>% filter(complete.cases(.))
+```
+
+```{r}
+library(dplyr)
+df %>% na.omit
+```
+
+
+```{r}
+library(tidyr)
+df %>% drop_na
+```
+
+```{r}
+library(dplyr)
+df %>% filter(!is.na(Name))
+```
+
+
+```{r}
+library(dplyr)
+df %>% filter(is.na(health))
+```
+
+
+```{r}
+library(tidyr)
+df %>% drop_na(height)
+```
+
