@@ -12,4 +12,4 @@ Introduction to data wrangling:
 
 Data wrangling notebooks:
 
-* [<img src="https://www.r-project.org/logo/Rlogo.svg" width="5%">](http://htmlpreview.github.io/?https://github.com/kirenz/data-science-projects/blob/master/ds-first-steps-happy-gdp-1.html)  *R code*
+* [Data wrangling<img src="https://www.r-project.org/logo/Rlogo.svg" width="5%">](http://htmlpreview.github.io/?https://github.com/kirenz/data-wrangling-with-r/blob/main/data-wrangling.html)  
