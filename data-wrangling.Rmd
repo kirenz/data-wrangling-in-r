@@ -1,5 +1,5 @@
 ---
-title: "Data Wrangling in R"
+title: "Data Wrangling with R"
 subtitle: "Code-Overview"
 author: "Prof. Dr. Jan Kirenz, HdM Stuttgart"
 output:
