@@ -14,4 +14,4 @@ Data wrangling notebooks:
 
 * [<img src="https://www.r-project.org/logo/Rlogo.svg" width="3%"> Data wrangling](http://htmlpreview.github.io/?https://github.com/kirenz/data-wrangling-with-r/blob/main/data-wrangling.html)  
 
-* [<img src="https://www.r-project.org/logo/Rlogo.svg" width="3%"> Tidyverse tricks](http://htmlpreview.github.io/?https://github.com/kirenz/data-wrangling-with-r/blob/main/tidyverse-tricks.html)  
+* [<img src="https://www.r-project.org/logo/Rlogo.svg" width="3%"> Tidyverse tricks](http://htmlpreview.github.io/?https://github.com/kirenz/data-wrangling-with-r/blob/main/tidyverse_tricks.html)  
